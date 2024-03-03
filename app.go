@@ -70,6 +70,7 @@ func main() {
 			continue
 		}
 
+		// FIXME: improve handling userInputRecitationId by checking if the id is in recitations
 		if userInputRecitationId > len(recitations) {
 			continue
 		}
