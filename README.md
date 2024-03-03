@@ -27,3 +27,15 @@ CLI options:
 ./qurandw en ./downloads true 20
 
 ```
+
+Note that on *NIX systems, you'll need to set proper file permissions
+
+```shell
+chmod +x ./qurandw-darwin-arm64
+```
+
+Then open the app
+
+```shell
+./qurandw-darwin-arm64
+```
