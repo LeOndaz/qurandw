@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -8,49 +9,30 @@ import (
 	"qurandw/api"
 	"qurandw/utils"
 	"slices"
-	"strconv"
 	"sync"
 )
 
 func main() {
-	locale := "ar"
-	concurrentDownloads := 10
-	reverseOrder := false
-	outputDir, err := os.Getwd()
+	locale := flag.String("locale", "ar", "--locale <language>")
+	concurrentDownloads := flag.Int("batches", 10, "--batches <amount>")
+	reverseOrder := flag.Bool("reverse", false, "--reverse <true/flase>")
+	defaultDir, err := os.Getwd()
+	outputDir := flag.String("output", defaultDir, "--output dir/to/write/into")
+	singleChapterName := flag.String("chapter", "", "--chapter <name>")
+	singleChapterId := flag.Int("chapterid", -1, "--chapterid <id>")
+	flag.Parse()
+
+	fmt.Println("chapter", *singleChapterName, "chapterid", *singleChapterId)
 
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 
-	if len(os.Args) > 1 {
-		locale = os.Args[1]
-
-		if len(locale) > 2 {
-			log.Fatalf("invalid language code %s", locale)
-		}
+	if len(*locale) > 2 {
+		log.Fatalf("invalid language code %s", *locale)
 	}
 
-	if len(os.Args) > 2 {
-		outputDir = os.Args[2]
-	}
-
-	if len(os.Args) > 3 {
-		reverseOrder, err = strconv.ParseBool(os.Args[3])
-
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-	}
-
-	if len(os.Args) > 4 {
-		concurrentDownloads, err = strconv.Atoi(os.Args[4])
-
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-	}
-
-	recitations, err := api.GetRecitations(locale)
+	recitations, err := api.GetRecitations(*locale)
 
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -85,7 +67,7 @@ func main() {
 		break
 	}
 
-	audioFiles, err := api.GetAudioFilesOfRecitation(userInputRecitationId, locale)
+	audioFiles, err := api.GetAudioFilesOfRecitation(userInputRecitationId, *locale)
 
 	if err != nil {
 		print(err.Error())
@@ -94,13 +76,38 @@ func main() {
 		)
 	}
 
-	if reverseOrder == true {
+	if *reverseOrder {
 		slices.SortStableFunc(audioFiles, func(i, j api.AudioFile) int {
 			return -1
 		})
 	}
 
-	chapters, err := api.GetChapters(locale)
+	var chapters []api.Chapter
+
+	if len(*singleChapterName) > 0 {
+		var chapter *api.Chapter
+		chapter, err = api.GetChapterByName(*locale, *singleChapterName)
+		if err != nil {
+			panic(err)
+		}
+
+		tempList := [1]api.Chapter{*chapter}
+		chapters = tempList[:]
+	} else if *singleChapterId > 0 && *singleChapterId <= 114 { // There are 114 chapters in the Quran
+		var chapter *api.Chapter = &api.Chapter{}
+		chapter, err = api.GetChapterById(*locale, *singleChapterId)
+		if err != nil {
+			panic(err)
+		}
+
+		tempList := [1]api.Chapter{*chapter}
+		chapters = tempList[:]
+	} else {
+		chapters, err = api.GetAllChapters(*locale)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	wg := sync.WaitGroup{}
 
@@ -112,12 +119,16 @@ func main() {
 	for i, audioFile := range audioFiles {
 		chapter := api.FilterChapterById(chapters, audioFile.ChapterId)
 
+		if chapter == nil {
+			continue
+		}
+
 		fileName := fmt.Sprintf(
 			"%s.%s",
-			api.GetLocalChapterName(chapter, locale),
+			api.GetLocalChapterName(chapter, *locale),
 			audioFile.Format,
 		)
-		filePath := path.Join(outputDir, recitation.TranslatedName.Name, fileName)
+		filePath := path.Join(*outputDir, recitation.TranslatedName.Name, fileName)
 
 		err := os.MkdirAll(path.Dir(filePath), os.ModePerm)
 
@@ -144,11 +155,11 @@ func main() {
 		}(i, audioFile)
 
 		// wait for the concurrentDownloads number to download, then proceed
-		if i%concurrentDownloads == 0 {
+		if i%*concurrentDownloads == 0 {
 			wg.Wait()
 		}
 	}
 
 	wg.Wait()
-	fmt.Printf("Downloaded in %s", path.Join(outputDir, recitation.ReciterName))
+	fmt.Printf("Downloaded in %s", path.Join(*outputDir, recitation.ReciterName))
 }

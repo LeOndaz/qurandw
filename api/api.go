@@ -60,7 +60,7 @@ func GetAudioFilesOfRecitation(id int, languageCode string) ([]AudioFile, error)
 	return audioFileResponse.AudioFiles, nil
 }
 
-func GetChapters(languageCode string) ([]Chapter, error) {
+func GetAllChapters(languageCode string) ([]Chapter, error) {
 	var chapterResponse *ChapterResponse
 
 	response, err := utils.GetRequest(getChaptersUrl(), map[string]string{
@@ -78,4 +78,51 @@ func GetChapters(languageCode string) ([]Chapter, error) {
 	}
 
 	return chapterResponse.Chapters, nil
+}
+
+func GetChapterByName(languageCode, chapterName string) (*Chapter, error) {
+	var chapterResponse *ChapterResponse
+
+	response, err := utils.GetRequest(getChaptersUrl(), map[string]string{
+		"language": languageCode,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&chapterResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, chapter := range chapterResponse.Chapters {
+		if chapter.NameSimple == chapterName {
+			return &chapter, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Chapter %s not found", chapterName)
+}
+
+func GetChapterById(languageCode string, chapterId int) (*Chapter, error) {
+
+	var chapterResponse SingleChapterResponse
+
+	response, err := utils.GetRequest(fmt.Sprintf("%s/%d", getChaptersUrl(), chapterId), map[string]string{
+		"language": languageCode,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&chapterResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &chapterResponse.Chapter, nil
 }
