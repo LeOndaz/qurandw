@@ -47,3 +47,7 @@ type Chapter struct {
 type ChapterResponse struct {
 	Chapters []Chapter `json:"chapters"`
 }
+
+type SingleChapterResponse struct {
+	Chapter Chapter `json:"chapter"`
+}

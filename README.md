@@ -12,19 +12,25 @@ CLI options:
 
 # create all directories/files in English
 # defaults to ar - [ISO 639-1 language code]
-./qurandw en 
+./qurandw --locale en 
 
 # specify a download directory
 # note that a subdirectory will be created for the reciter
 # defaults to current work directory
-./qurandw en ./downloads 
+./qurandw --output ./downloads 
 
 # download small chapters first (Quran in reverse order)
 # defaults to false
-./qurandw en ./downloads true
+./qurandw --reverse true
 
 # download in batches of 20, defaults to 10
-./qurandw en ./downloads true 20
+./qurandw --batches 20
+
+# download chapter by id (downloads all chapters if the id is invalid)
+./qurandw --chapterid 1
+
+# download chapter by name
+./qurandw --chapter Al-Fatihah
 
 ```
 
