@@ -22,8 +22,6 @@ func main() {
 	singleChapterId := flag.Int("chapterid", -1, "--chapterid <id>")
 	flag.Parse()
 
-	fmt.Println("chapter", *singleChapterName, "chapterid", *singleChapterId)
-
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
