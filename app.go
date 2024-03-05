@@ -15,7 +15,7 @@ import (
 func main() {
 	locale := flag.String("locale", "ar", "--locale <language>")
 	concurrentDownloads := flag.Int("batches", 10, "--batches <amount>")
-	reverseOrder := flag.Bool("reverse", false, "--reverse <true/flase>")
+	reverseOrder := flag.Bool("reverse", false, "--reverse <true/false>")
 	defaultDir, err := os.Getwd()
 	outputDir := flag.String("output", defaultDir, "--output dir/to/write/into")
 	singleChapterName := flag.String("chapter", "", "--chapter <name>")
