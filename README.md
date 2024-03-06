@@ -45,3 +45,7 @@ Then open the app
 ```shell
 ./qurandw-darwin-arm64
 ```
+
+## Important Notes
+
+- This README.md is for the `main` branch, which is used for development, if you want to download, use the releases section, read the corresponding README.md as the interface may change.
